@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Connect-4 Arena</title>
+<style>
+:root{--bg:#0b1220;--card:#111a2e;--btn:#1d2a48;--tx:#e6ebf5;--mu:#9fb0cc;--gold:#d9ac00;--on:#111;--bd:#243456;--board:#1b3170;--cell:#0b1220;--hu:#e25b52;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef1f8;--card:#fff;--btn:#e1e7f5;--tx:#14213d;--mu:#4c5b7a;--gold:#c79a00;--bd:#c9d3ea;--board:#2f55c9;--cell:#e9eefb;color-scheme:light}}
+:root[data-theme="light"]{--bg:#eef1f8;--card:#fff;--btn:#e1e7f5;--tx:#14213d;--mu:#4c5b7a;--gold:#c79a00;--bd:#c9d3ea;--board:#2f55c9;--cell:#e9eefb;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:440px;margin:0 auto;padding:18px 14px 40px}
+h1{font-family:Georgia,'Times New Roman',serif;color:var(--gold);text-transform:uppercase;text-align:center;font-size:2rem;letter-spacing:.5px;margin:28px 0 6px}
+h2{font-family:Georgia,serif;color:var(--gold);margin:6px 0 12px;font-size:1.35rem}
+.sub{text-align:center;font-size:1.1rem;margin:0 0 6px}.tag{text-align:center;color:var(--mu);font-size:.9rem;margin:0 0 22px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px}
+button,select{font:inherit;color:var(--tx);background:var(--btn);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;cursor:pointer}
+.big{display:block;width:100%;margin:0 0 10px;padding:15px}.big.go,.go{background:var(--gold);color:var(--on);border-color:var(--gold)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.opt.on{outline:2px solid var(--gold)}
+#board{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;background:var(--board);padding:8px;border-radius:14px;margin:10px 0}
+.cell{aspect-ratio:1;border-radius:50%;background:var(--cell);cursor:pointer}.cell.ai{background:var(--gold)}.cell.hu{background:var(--hu)}
+.mu{color:var(--mu);font-size:.92rem}
+table{width:100%;border-collapse:collapse;font-size:.82rem}th,td{padding:5px 3px;border-bottom:1px solid var(--bd);text-align:right}th:first-child,td:first-child{text-align:left}
+.tw{overflow-x:auto}
+.bar{display:flex;align-items:center;gap:8px;margin:7px 0}.bar span{width:14px}.bar div{flex:1;background:var(--cell);border-radius:8px;height:20px}
+.bar i{display:block;height:100%;border-radius:8px;background:var(--mu)}.bar i.b{background:var(--gold)}.bar em{width:64px;font-style:normal;text-align:right;font-size:.85rem}
+.lock{opacity:.5}.card.cur{border-color:var(--gold)}
+.gm{display:block;width:100%;margin-top:8px;padding:15px;text-align:center}
+button:disabled{opacity:.45;cursor:default}
+details{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px 14px;margin:8px 0}
+details[open]{border-color:var(--gold)}summary{color:var(--gold);cursor:pointer}
+.sel{color:#3ecf8e;font-size:.7rem;margin-left:8px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two select{width:100%}
+.f{font-size:.85rem;color:var(--mu);display:block;margin-bottom:4px}
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:10px}.gal .mu{font-size:.78rem}
+.cell.hi{outline:3px solid var(--tx)}
+</style></head><body><div class="wrap">
+
+<section id="menu">
+<h1>Connect-4 Arena</h1><p class="sub">The AI Minimax Challenge</p>
+<p class="tag">Minimax · Alpha-Beta Pruning · Human vs Algorithm</p>
+<div class="card">
+<button class="big go" onclick="show('levels')">Start Game</button>
+<button class="big" onclick="show('cmp')">Algorithm Comparison</button>
+<button class="big" onclick="show('lab')">AI Algorithm Visualization Lab</button>
+<button class="big" onclick="show('how')">Instructions</button>
+<button class="big" onclick="show('about')">About</button>
+<button class="big" onclick="show('bye')">Exit</button></div>
+</section>
+
+<section id="levels" hidden>
+<div class="row"><button onclick="show('menu')">Main Menu</button></div>
+<h2>Select a Level</h2><p class="mu">Finish all three games in a level to unlock the next algorithm.</p>
+<div id="lvls"></div>
+</section>
+
+<section id="game" hidden>
+<div class="row"><button onclick="show('levels')">Levels</button><button class="go" onclick="newGame()">New game</button></div>
+<h2 id="gt" style="margin-bottom:2px"></h2><p id="ga" class="mu" style="margin:0 0 10px"></p>
+<div class="card"><div id="st"></div><div id="board"></div><div id="info" class="mu"></div></div>
+<p class="mu">You are red and move first. The gold discs are the AI. Finishing a game (win, draw or loss) counts towards unlocking the next level.</p>
+</section>
+
+<section id="cmp" hidden>
+<div class="row"><button onclick="show('menu')">Main Menu</button><h2 style="margin:0">Algorithm Comparison</h2></div>
+<div class="row"><button class="opt on" data-k="e" onclick="pick(this)">Empty board</button><button class="opt" data-k="g" onclick="pick(this)">Early game</button><button class="opt" data-k="m" onclick="pick(this)">Mid game</button></div>
+<div class="row"><button class="go" onclick="runCmp()">Run comparison</button><button onclick="show('lab')">Visualization Lab</button></div>
+<p class="mu">The same position is given to every solver. Metrics are real runs measured in your browser, not fabricated benchmarks. All three must choose the same column.</p>
+<div class="card tw" id="res">Choose a position, then run the comparison.</div>
+</section>
+
+<section id="lab" hidden>
+<div class="row"><button onclick="show('menu')">Main Menu</button></div>
+<h2>AI Algorithm Visualization Lab</h2>
+<p class="mu">Inspect real search decisions at depth 4; the game’s AI timing and turn rules are unchanged.</p>
+<div class="card">
+<div class="two"><div><label class="f">Algorithm</label><select id="la" onchange="sync()"><option value="0">Plain Minimax</option><option value="1">Alpha-Beta Pruning</option><option value="2">Alpha-Beta + Move Ordering</option></select></div>
+<div><label class="f">Position</label><select id="lp" onchange="steps=[];reset()"><option value="e">Empty board</option><option value="g">Early game</option><option value="m">Mid game</option><option value="c">Current game</option></select></div></div>
+<button class="big go" style="margin-top:12px" onclick="runSearch()">Run Search</button>
+<button class="big" onclick="runCompare()">Compare Algorithms</button>
+<button class="big" style="margin:0" onclick="gallery()">Generate Solution Gallery</button></div>
+<div class="card tw" id="lout" style="margin-top:12px" hidden></div>
+<h2 style="margin-top:18px">How the search algorithms work</h2>
+<p class="mu">Each level uses its assigned algorithm. Open a card to read its steps; the highlighted method is selected above. These are different real search strategies, not animations of one shared route.</p>
+<div id="how2"></div>
+<div class="card" style="margin-top:12px">
+<div class="row pb"><button onclick="play()">Play</button><button onclick="pause()">Pause</button><button onclick="reset()">Reset</button><button onclick="nxt()">Next Step</button></div>
+<label class="f">Speed</label><input id="sp" type="range" min="1" max="5" value="2" style="width:100%">
+<div id="lbd" style="margin-top:10px"></div><div id="bars" style="margin-top:8px"></div><div id="linfo" class="mu">Choose an algorithm and position, then press Run Search.</div></div>
+</section>
+
+<section id="how" hidden>
+<div class="row"><button onclick="show('menu')">Main Menu</button><h2 style="margin:0">Instructions</h2></div>
+<div class="card">Choose a level and tap a column to drop your red disc. Connect four in a row (horizontally, vertically or diagonally) before the AI does. Level 1 uses plain minimax, Level 2 adds alpha-beta pruning, and Level 3 adds centre-first move ordering with a deeper search. Finish three games to unlock the next level. The Lab lets you watch each algorithm evaluate every column.</div>
+</section>
+
+<section id="about" hidden>
+<div class="row"><button onclick="show('menu')">Main Menu</button><h2 style="margin:0">About</h2></div>
+<div class="card"><b>Approach:</b> adversarial search.<br><br><b>Algorithms:</b> depth-limited minimax, alpha-beta pruning, a heuristic evaluation function (windows of four cells plus a centre bonus), and centre-first move ordering.<br><br>This is a web port of the C program written for the AI and Soft Computing project.</div>
+</section>
+
+<section id="bye" hidden>
+<h1>Thank you</h1><p class="tag">You can close this tab now.</p>
+<button class="big go" onclick="show('menu')">Back to menu</button>
+</section>
+</div>
+<script>
+const AI=1,HU=2,INF=2e9,WS=1e6,ORDER=[3,2,4,1,5,0,6],NAT=[0,1,2,3,4,5,6],DR=[0,1,1,1],DC=[1,0,1,-1];
+const b=new Array(42).fill(0);let nodes=0,ab=true,ord=true,depth=4,over=false,busy=false,cp='e';
+const $=id=>document.getElementById(id);
+const valid=c=>b[c]===0;
+function drop(c,p){for(let r=5;r>=0;r--)if(!b[r*7+c]){b[r*7+c]=p;return r}return -1}
+const undo=(r,c)=>{b[r*7+c]=0};
+function full(){for(let c=0;c<7;c++)if(valid(c))return false;return true}
+function wins(p){for(let r=0;r<6;r++)for(let c=0;c<7;c++)for(let d=0;d<4;d++){let k=0;for(;k<4;k++){const rr=r+k*DR[d],cc=c+k*DC[d];if(rr<0||rr>=6||cc<0||cc>=7||b[rr*7+cc]!==p)break}if(k===4)return true}return false}
+function sw(r,c,d){let a=0,h=0,e=0;for(let k=0;k<4;k++){const rr=r+k*DR[d],cc=c+k*DC[d];if(rr<0||rr>=6||cc<0||cc>=7)return 0;const v=b[rr*7+cc];if(v===AI)a++;else if(v===HU)h++;else e++}
+if(a===4)return 100;if(a===3&&e===1)return 5;if(a===2&&e===2)return 2;if(h===3&&e===1)return -4;return 0}
+function ev(){let s=0;for(let r=0;r<6;r++)if(b[r*7+3]===AI)s+=3;for(let r=0;r<6;r++)for(let c=0;c<7;c++)for(let d=0;d<4;d++)s+=sw(r,c,d);return s}
+function mm(d,al,be,mx){nodes++;if(wins(AI))return WS+d;if(wins(HU))return -WS-d;if(full())return 0;if(d===0)return ev();
+const o=ord?ORDER:NAT;let best=mx?-INF:INF;
+for(const c of o){if(!valid(c))continue;const r=drop(c,mx?AI:HU);const v=mm(d-1,al,be,!mx);undo(r,c);
+if(mx){if(v>best)best=v;if(best>al)al=best}else{if(v<best)best=v;if(best<be)be=best}
+if(ab&&al>=be)break}
+return best}
+function scores(d){const s=Array(7).fill(null);for(const c of ORDER){if(!valid(c))continue;const r=drop(c,AI);s[c]=mm(d-1,-INF,INF,false);undo(r,c)}return s}
+function best(s){let bc=-1,bv=-INF;for(const c of ORDER)if(s[c]!==null&&s[c]>bv){bv=s[c];bc=c}return bc}
+
+
+const ALG=[{n:'Plain Minimax',ab:0,o:0,d:2,lv:'Easy'},{n:'Alpha-Beta Pruning',ab:1,o:0,d:4,lv:'Medium'},{n:'Alpha-Beta + Move Ordering',ab:1,o:1,d:6,lv:'Hard'}];
+const INFO=[
+{s:['Try every column for the AI, then every reply for the human, down to the depth limit.','Score the boards at the limit with the evaluation function.','Pass values up: the AI keeps the highest, the human keeps the lowest.','Play the column with the best value at the root.'],w:'Every column is searched in full, so node counts are large.',t:'Always best for its depth, but visits every node (about 7 to the power of the depth).'},
+{s:['Run minimax, but track alpha (best the AI can already guarantee) and beta (best the human can already guarantee).','When alpha is at least beta, stop that branch: it cannot change the result.','Return exactly the move plain minimax would choose.'],w:'Later columns need far fewer nodes than the first one.',t:'Same answer with fewer nodes, but the saving depends on the order moves are tried.'},
+{s:['Try the centre columns first (4, 3, 5, 2, 6, 1, 7).','Strong early moves give early cut-offs.','Apply alpha-beta pruning as before.'],w:'Node counts drop again compared with plain alpha-beta.',t:'Best speed, and a deeper search is affordable. Ordering is a heuristic, not a guarantee.'}];
+let prog=[[0,0,0],[0,0,0],[0,0,0]],lv=0,gm=0,steps=[],base=[],bestc=-1,idx=-1,tm=null,total=0;
+try{const s=JSON.parse(localStorage.getItem('c4prog'));if(Array.isArray(s)&&s.length===3)prog=s}catch(e){}
+function save(){try{localStorage.setItem('c4prog',JSON.stringify(prog))}catch(e){}}
+function show(id){pause();document.querySelectorAll('section').forEach(s=>s.hidden=s.id!==id);if(id==='levels')renderLevels();if(id==='lab')labInit();scrollTo(0,0)}
+function renderLevels(){const T={W:'Won',D:'Draw',L:'Lost'};$('lvls').innerHTML=ALG.map((A,i)=>{const open=i===0||prog[i-1].every(x=>x);const k=prog[i].filter(x=>x).length;
+return `<div class="card ${open?'cur':'lock'}" style="margin-bottom:14px"><div style="font-size:1.1rem">Level ${i+1} &nbsp;${A.lv}</div><div style="color:var(--gold);margin:6px 0">${A.n}</div><div class="mu">${k}/3 games completed · search depth ${A.d}${open?'':' · locked'}</div>`+[0,1,2].map(g=>`<button class="gm" ${open?'':'disabled'} onclick="startGame(${i},${g})">Game ${g+1}${prog[i][g]?' · '+T[prog[i][g]]:''}</button>`).join('')+'</div>'}).join('')}
+function boardHtml(a,hi,gap){return `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:${gap}px;background:var(--board);padding:${gap}px;border-radius:10px">`+a.map((v,i)=>`<div class="cell ${v===AI?'ai':v===HU?'hu':''} ${i===hi?'hi':''}" style="cursor:default"></div>`).join('')+'</div>'}
+function render(){$('board').innerHTML=b.map((v,i)=>`<div class="cell ${v===AI?'ai':v===HU?'hu':''}" data-c="${i%7}"></div>`).join('')}
+function startGame(l,g){lv=l;gm=g;depth=ALG[l].d;$('gt').textContent=`Level ${l+1} · Game ${g+1}`;$('ga').textContent=`${ALG[l].n} · search depth ${ALG[l].d}`;newGame();show('game')}
+function newGame(){b.fill(0);over=false;busy=false;$('st').textContent='Your move.';$('info').textContent='';render()}
+function end(m,r){over=true;busy=false;prog[lv][gm]=r;save();$('st').textContent=m+' Result saved — use Levels to continue.'}
+$('board').onclick=e=>{const t=e.target.closest('.cell');if(!t||over||busy)return;const c=+t.dataset.c;if(!valid(c))return;
+drop(c,HU);render();if(wins(HU))return end('You win! 🎉','W');if(full())return end('It’s a draw.','D');
+busy=true;$('st').textContent='AI is thinking…';setTimeout(aiMove,60)};
+function aiMove(){const A=ALG[lv];ab=!!A.ab;ord=!!A.o;nodes=0;const t=performance.now();const c=best(scores(depth));drop(c,AI);const ms=performance.now()-t;ab=true;ord=true;render();
+$('info').textContent=`AI played column ${c+1} · ${nodes.toLocaleString()} nodes · ${ms.toFixed(1)} ms`;busy=false;
+if(wins(AI))return end('The AI wins.','L');if(full())return end('It’s a draw.','D');$('st').textContent='Your move.'}
+
+const SEQ={e:'',g:'32423',m:'23431'};
+function pick(el){cp=el.dataset.k;document.querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',o===el))}
+function load(s){b.fill(0);let p=HU;for(const ch of s){drop(+ch,p);p=p===HU?AI:HU}}
+function withBoard(a,fn){const sv=b.slice();a.forEach((v,i)=>b[i]=v);try{return fn()}finally{ab=true;ord=true;sv.forEach((v,i)=>b[i]=v)}}
+function getPos(k){if(k==='c')return b.slice();return withBoard(new Array(42).fill(0),()=>{load(SEQ[k]);return b.slice()})}
+function cmpHtml(a){return withBoard(a,()=>{let h='<table><tr><th>Depth</th><th>Plain</th><th>Alpha-beta</th><th>+Ordering</th><th>Same?</th></tr>';
+for(const d of [2,4,6]){const n=[],t=[],col=[];
+for(const [x,y] of [[0,0],[1,0],[1,1]]){ab=!!x;ord=!!y;nodes=0;const t0=performance.now();col.push(best(scores(d)));t.push(performance.now()-t0);n.push(nodes)}
+h+=`<tr><td>${d}</td>`+n.map((v,i)=>`<td>${v.toLocaleString()}<br><span class="mu">${t[i].toFixed(1)} ms</span></td>`).join('')+`<td>${col[0]===col[1]&&col[1]===col[2]?'Yes':'NO'}</td></tr>`}
+return h+'</table><p class="mu" style="margin:8px 0 0">Cells show nodes searched and time.</p>'})}
+function runCmp(){$('res').textContent='Running…';setTimeout(()=>{$('res').innerHTML=cmpHtml(getPos(cp))},40)}
+
+function labInit(){$('how2').innerHTML=INFO.map((x,i)=>`<details id="dt${i}"><summary>${ALG[i].n}<span class="sel" id="sl${i}">SELECTED</span></summary><ol>${x.s.map(s=>`<li>${s}</li>`).join('')}</ol><p><b>What to watch:</b> ${x.w}</p><p><b>Trade-off:</b> ${x.t}</p></details>`).join('');sync();reset()}
+function sync(){const s=+$('la').value;for(let i=0;i<3;i++){$('dt'+i).open=i===s;$('sl'+i).hidden=i!==s}steps=[];reset()}
+const lbl=v=>v>=WS-10?'WIN':v<=-WS+10?'LOSS':String(v);
+function runSearch(){pause();const a=getPos($('lp').value),A=ALG[+$('la').value];
+withBoard(a,()=>{ab=!!A.ab;ord=!!A.o;nodes=0;steps=[];bestc=-1;let bv=-INF;
+for(const c of ORDER){if(!valid(c))continue;const n0=nodes;const r=drop(c,AI);const v=mm(3,-INF,INF,false);undo(r,c);steps.push({c,v,n:nodes-n0});if(v>bv){bv=v;bestc=c}}total=nodes});
+base=a;idx=-1;$('lout').hidden=true;showStep()}
+function showStep(){const tmp=base.length?base.slice():new Array(42).fill(0);let hi=-1;
+if(idx>=0){const c=steps[idx].c;for(let r=5;r>=0;r--)if(!tmp[r*7+c]){tmp[r*7+c]=AI;hi=r*7+c;break}}
+$('lbd').innerHTML=boardHtml(tmp,hi,4);
+const done=steps.length&&idx===steps.length-1;
+$('bars').innerHTML=[0,1,2,3,4,5,6].map(c=>{const s=steps.slice(0,idx+1).find(x=>x.c===c);let w=0,l='';
+if(s){const v=s.v;w=v>=WS-10?100:v<=-WS+10?4:Math.max(4,Math.min(100,50+v/3));l=lbl(v)}
+return `<div class="bar"><span>${c+1}</span><div><i class="${done&&c===bestc?'b':''}" style="width:${w}%"></i></div><em>${l}</em></div>`}).join('');
+if(!steps.length)$('linfo').textContent='Choose an algorithm and position, then press Run Search.';
+else if(idx<0)$('linfo').textContent=`${steps.length} columns to evaluate. Press Next Step or Play.`;
+else{const cum=steps.slice(0,idx+1).reduce((a,x)=>a+x.n,0);$('linfo').textContent=`Column ${steps[idx].c+1}: score ${lbl(steps[idx].v)} · ${steps[idx].n.toLocaleString()} nodes (running total ${cum.toLocaleString()}).`+(done?` Best column: ${bestc+1}. Total nodes: ${total.toLocaleString()}.`:'')}}
+function pause(){if(tm){clearInterval(tm);tm=null}}
+function reset(){pause();idx=-1;showStep()}
+function nxt(){if(!steps.length)runSearch();if(idx<steps.length-1){idx++;showStep()}}
+function play(){if(tm)return;if(!steps.length)runSearch();if(!steps.length)return;if(idx>=steps.length-1)idx=-1;tm=setInterval(()=>{if(idx>=steps.length-1){pause();return}idx++;showStep()},1300/+$('sp').value)}
+function runCompare(){const o=$('lout');o.hidden=false;o.textContent='Running…';setTimeout(()=>{o.innerHTML=cmpHtml(getPos($('lp').value))},40)}
+function gallery(){const A=ALG[+$('la').value],o=$('lout');o.hidden=false;let h='<div class="gal">';
+for(const [k,nm] of [['e','Empty board'],['g','Early game'],['m','Mid game']]){
+withBoard(getPos(k),()=>{ab=!!A.ab;ord=!!A.o;nodes=0;const c=best(scores(4)),n=nodes,r=drop(c,AI);
+h+=`<div>${boardHtml(b.slice(),r*7+c,2)}<div class="mu">${nm}: plays column ${c+1} · ${n.toLocaleString()} nodes</div></div>`;undo(r,c)})}
+o.innerHTML=h+'</div><p class="mu" style="margin:8px 0 0">AI move chosen by '+A.n+' (white ring = new disc).</p>'}
+</script></body></html>
